@@ -12,6 +12,7 @@ import { ConfirmDialog, Modal } from "@/components/ui/Modal";
 import { downloadFile, transactionsToCSV } from "@/lib/csv";
 import type { CategoryDef, ThemeMode } from "@/types/finance";
 import { uid } from "@/lib/utils";
+import Link from "next/link";
 
 const CURRENCIES = [
   { value: "MXN", label: "MXN — Peso mexicano" },
@@ -109,41 +110,16 @@ export default function ConfiguracionPage() {
               <option value="light">Claro</option>
               <option value="dark">Oscuro</option>
             </Select>
-          </div>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Metas financieras</CardTitle>
-              <CardSubtitle>Define objetivos de ahorro y emergencia</CardSubtitle>
+            <div className="sm:col-span-2">
+              <Input
+                label="Presupuesto mensual total (opcional)"
+                type="number"
+                min="0"
+                value={state.settings.monthlyBudgetTotal ?? ""}
+                onChange={(e) => updateSettings({ monthlyBudgetTotal: e.target.value ? Number(e.target.value) : undefined })}
+                leftIcon={<span className="text-ink-500">$</span>}
+              />
             </div>
-          </CardHeader>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
-              label="% de ahorro objetivo"
-              type="number"
-              min="0"
-              max="100"
-              value={state.settings.savingsTargetPct}
-              onChange={(e) => updateSettings({ savingsTargetPct: Number(e.target.value) })}
-              rightAddon={<span>%</span>}
-            />
-            <Input
-              label="Meses de fondo de emergencia"
-              type="number"
-              min="0"
-              value={state.settings.emergencyFundMonths}
-              onChange={(e) => updateSettings({ emergencyFundMonths: Number(e.target.value) })}
-            />
-            <Input
-              label="Presupuesto mensual total (opcional)"
-              type="number"
-              min="0"
-              value={state.settings.monthlyBudgetTotal ?? ""}
-              onChange={(e) => updateSettings({ monthlyBudgetTotal: Number(e.target.value) })}
-              leftIcon={<span className="text-ink-500">$</span>}
-            />
           </div>
         </Card>
 
@@ -175,28 +151,10 @@ export default function ConfiguracionPage() {
             </div>
             <div className="rounded-xl border border-ink-100 p-3 dark:border-ink-800">
               <Switch
-                checked={state.settings.notifications.debtReminders}
-                onChange={(v) => updateSettings({ notifications: { ...state.settings.notifications, debtReminders: v } })}
-                label="Recordatorios de deuda"
-                hint="Próximos vencimientos"
-                size="sm"
-              />
-            </div>
-            <div className="rounded-xl border border-ink-100 p-3 dark:border-ink-800">
-              <Switch
                 checked={state.settings.notifications.unusualSpending}
                 onChange={(v) => updateSettings({ notifications: { ...state.settings.notifications, unusualSpending: v } })}
                 label="Gastos inusuales"
                 hint="Detección automática de anomalías"
-                size="sm"
-              />
-            </div>
-            <div className="rounded-xl border border-ink-100 p-3 dark:border-ink-800">
-              <Switch
-                checked={state.settings.notifications.goalsAtRisk}
-                onChange={(v) => updateSettings({ notifications: { ...state.settings.notifications, goalsAtRisk: v } })}
-                label="Metas en riesgo"
-                hint="Avisos cuando una meta se atrasa"
                 size="sm"
               />
             </div>
@@ -278,6 +236,13 @@ export default function ConfiguracionPage() {
             <li>• Datos almacenados localmente en tu navegador (LocalStorage)</li>
             <li>• Arquitectura lista para migrar a backend real</li>
           </ul>
+          <div className="mt-4 pt-3 border-t border-ink-100 dark:border-ink-800">
+            <Link href="/ayuda">
+              <Button variant="outline" className="w-full justify-center">
+                Ver Manual de Usuario y Ayuda
+              </Button>
+            </Link>
+          </div>
         </Card>
       </div>
 
