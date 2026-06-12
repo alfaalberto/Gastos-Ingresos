@@ -257,6 +257,28 @@ export const useFinanceStore = create<FinanceStore>()(
     {
       name: "finanzapro-store-v1",
       version: 1,
+      merge: (persistedState: unknown, currentState: FinanceStore): FinanceStore => {
+        if (!persistedState) return currentState;
+        const persisted = persistedState as Partial<FinanceStore>;
+        return {
+          ...currentState,
+          ...persisted,
+          transactions: Array.isArray(persisted.transactions) ? persisted.transactions : currentState.transactions,
+          accounts: Array.isArray(persisted.accounts) ? persisted.accounts : currentState.accounts,
+          budgets: Array.isArray(persisted.budgets) ? persisted.budgets : currentState.budgets,
+          debts: Array.isArray(persisted.debts) ? persisted.debts : currentState.debts,
+          goals: Array.isArray(persisted.goals) ? persisted.goals : currentState.goals,
+          categories: Array.isArray(persisted.categories) ? persisted.categories : currentState.categories,
+          settings: {
+            ...currentState.settings,
+            ...(persisted.settings || {}),
+            notifications: {
+              ...(currentState.settings?.notifications || {}),
+              ...(persisted.settings?.notifications || {}),
+            }
+          }
+        } as FinanceStore;
+      }
     }
   )
 );

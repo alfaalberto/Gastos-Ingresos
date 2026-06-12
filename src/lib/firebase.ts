@@ -23,10 +23,15 @@ let dbInstance: Firestore | null = null;
 export function getFirebaseApp(): FirebaseApp | null {
   if (typeof window === "undefined") return null;
   if (!isFirebaseConfigured) return null;
-  if (!app) {
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig as any);
+  try {
+    if (!app) {
+      app = getApps().length ? getApp() : initializeApp(firebaseConfig as any);
+    }
+    return app;
+  } catch (error) {
+    console.error("Error al inicializar Firebase:", error);
+    return null;
   }
-  return app;
 }
 
 export function getFirebaseAuth(): Auth | null {
