@@ -12,7 +12,7 @@ import type {
   Settings,
   Transaction,
 } from "@/types/finance";
-import { nowISO, uid } from "@/lib/utils";
+import { nowISO, todayISODate, uid } from "@/lib/utils";
 import { MOCK_STATE } from "@/data/mockData";
 
 interface Actions {
@@ -58,6 +58,7 @@ interface Actions {
   resetToMock: () => void;
   clearAll: () => void;
   importState: (state: Partial<FinanceState>) => void;
+  dismissDemo: () => void;
 }
 
 export type FinanceStore = FinanceState & Actions;
@@ -86,7 +87,7 @@ export const useFinanceStore = create<FinanceStore>()(
           ...original,
           id: uid("tx"),
           name: `${original.name} (copia)`,
-          date: new Date().toISOString().slice(0, 10),
+          date: todayISODate(),
           createdAt: nowISO(),
           updatedAt: nowISO(),
         };
@@ -94,7 +95,13 @@ export const useFinanceStore = create<FinanceStore>()(
         return dup;
       },
       bulkAddTransactions: (txs) =>
-        set((s) => ({ transactions: [...txs, ...s.transactions] })),
+        set((s) => {
+          // Idempotent import: skip rows whose id already exists (e.g. re-importing
+          // a previously exported CSV must not duplicate data).
+          const existing = new Set(s.transactions.map((t) => t.id));
+          const fresh = txs.filter((t) => !existing.has(t.id));
+          return { transactions: [...fresh, ...s.transactions] };
+        }),
 
       // --- Accounts ---
       addAccount: (a) => {
@@ -154,7 +161,7 @@ export const useFinanceStore = create<FinanceStore>()(
           type: "expense",
           name: `Pago a ${debt.name}`,
           amount,
-          date: new Date().toISOString().slice(0, 10),
+          date: todayISODate(),
           category: "Deudas",
           accountId,
           paymentMethod: "Transferencia",
@@ -191,7 +198,7 @@ export const useFinanceStore = create<FinanceStore>()(
           type: "expense",
           name: `Aportación a ${goal.name}`,
           amount,
-          date: new Date().toISOString().slice(0, 10),
+          date: todayISODate(),
           category: "Otros",
           accountId,
           paymentMethod: "Transferencia",
@@ -232,6 +239,7 @@ export const useFinanceStore = create<FinanceStore>()(
           // keep categories & settings
           categories: s.categories,
           settings: s.settings,
+          isDemoData: false,
         })),
       importState: (state) =>
         set((s) => ({
@@ -242,7 +250,9 @@ export const useFinanceStore = create<FinanceStore>()(
           goals: state.goals ?? s.goals,
           categories: state.categories ?? s.categories,
           settings: state.settings ?? s.settings,
+          isDemoData: false,
         })),
+      dismissDemo: () => set(() => ({ isDemoData: false })),
     }),
     {
       name: "finanzapro-store-v1",

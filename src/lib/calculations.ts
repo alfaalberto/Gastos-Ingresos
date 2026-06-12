@@ -7,7 +7,7 @@ import type {
   Goal,
   Transaction,
 } from "@/types/finance";
-import { monthKey, pct, safeDiv } from "./utils";
+import { clamp, monthKey, parseLocalDate, pct, safeDiv } from "./utils";
 
 export interface MonthlySummary {
   income: number;
@@ -182,14 +182,18 @@ export interface GoalSummary {
 export function computeGoalSummaries(goals: Goal[]): GoalSummary[] {
   return goals.map((g) => {
     const remaining = Math.max(0, g.targetAmount - g.currentAmount);
-    const targetDate = new Date(g.targetDate);
+    const targetDate = parseLocalDate(g.targetDate);
     const now = new Date();
     const monthsRemaining = Math.max(
       0,
       (targetDate.getFullYear() - now.getFullYear()) * 12 + (targetDate.getMonth() - now.getMonth())
     );
     const suggestedMonthly = monthsRemaining > 0 ? remaining / monthsRemaining : remaining;
-    const expectedProgress = monthsRemaining === 0 ? 1 : 1 - monthsRemaining / Math.max(1, monthsRemaining + 1);
+    // Expected progress = elapsed time over the goal's full timeline (createdAt → targetDate).
+    const start = new Date(g.createdAt).getTime();
+    const end = targetDate.getTime();
+    const expectedProgress =
+      end <= start ? 1 : clamp((now.getTime() - start) / (end - start), 0, 1);
     const progressPct = pct(g.currentAmount, g.targetAmount);
     return {
       goal: g,

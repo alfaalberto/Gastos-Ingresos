@@ -30,3 +30,6 @@ ui-debug.log
 
 # Archivo temporal de Next.js
 next.config.mjs.tmp
+
+# Artefacto incremental de TypeScript
+tsconfig.tsbuildinfo

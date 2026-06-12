@@ -307,6 +307,7 @@ export const MOCK_STATE: FinanceState = {
   goals: MOCK_GOALS,
   categories: DEFAULT_CATEGORIES,
   settings: DEFAULT_SETTINGS,
+  isDemoData: true,
 };
 
 export const PAYMENT_METHODS = [

@@ -157,4 +157,6 @@ export interface FinanceState {
   goals: Goal[];
   categories: CategoryDef[];
   settings: Settings;
+  /** True while the store still holds the bundled demo data. */
+  isDemoData?: boolean;
 }

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, Eye, EyeOff, Moon, Plus, Sparkles, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Bell, Cloud, CloudOff, Eye, EyeOff, LogIn, LogOut, Moon, Plus, Sparkles, Sun, UserCircle2 } from "lucide-react";
 import { useFinanceStore } from "@/store/financeStore";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/primitives";
 import { TransactionForm } from "@/components/forms/TransactionForm";
@@ -15,9 +17,21 @@ export function Topbar({ title, subtitle }: { title?: string; subtitle?: string 
   const setTheme = useFinanceStore((s) => s.setTheme);
   const togglePrivacy = useFinanceStore((s) => s.togglePrivacy);
   const alerts = useFinanceStore((s) => buildAlerts(s));
+  const { user, configured, signOut } = useAuth();
 
   const [openTx, setOpenTx] = useState(false);
   const [openAlerts, setOpenAlerts] = useState(false);
+  const [openUser, setOpenUser] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openUser) return;
+    const onClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setOpenUser(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [openUser]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink-100 bg-white/80 backdrop-blur-md dark:border-ink-800 dark:bg-ink-950/80">
@@ -85,6 +99,81 @@ export function Topbar({ title, subtitle }: { title?: string; subtitle?: string 
           >
             <Plus className="h-4 w-4" />
           </Button>
+
+          {/* User / cloud sync menu */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setOpenUser((v) => !v)}
+              className="relative rounded-xl p-2 text-ink-500 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800"
+              aria-label="Cuenta y sincronización"
+              title="Cuenta y sincronización"
+            >
+              <UserCircle2 className="h-4 w-4" />
+              <span
+                className={cn(
+                  "absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full",
+                  user ? "bg-success" : "bg-ink-300 dark:bg-ink-600"
+                )}
+              />
+            </button>
+            {openUser && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-ink-100 bg-white p-3 shadow-xl dark:border-ink-700 dark:bg-ink-900">
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Cloud className="h-4 w-4 text-success" />
+                      <div className="min-w-0">
+                        <div className="truncate text-xs font-semibold text-ink-900 dark:text-ink-50">{user.email}</div>
+                        <div className="text-[10px] text-success-dark dark:text-success">Sincronizado con la nube</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { void signOut(); setOpenUser(false); }}
+                      className="mt-3 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-danger hover:bg-danger/10"
+                    >
+                      <LogOut className="h-3.5 w-3.5" /> Cerrar sesión
+                    </button>
+                  </>
+                ) : configured ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <CloudOff className="h-4 w-4 text-ink-400" />
+                      <div>
+                        <div className="text-xs font-semibold text-ink-900 dark:text-ink-50">Sin sesión</div>
+                        <div className="text-[10px] text-ink-500 dark:text-ink-400">Tus datos solo viven en este navegador.</div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/login"
+                      onClick={() => setOpenUser(false)}
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-2 text-xs font-medium text-white hover:bg-brand-700"
+                    >
+                      <LogIn className="h-3.5 w-3.5" /> Iniciar sesión / respaldar en la nube
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <CloudOff className="h-4 w-4 text-ink-400" />
+                      <div>
+                        <div className="text-xs font-semibold text-ink-900 dark:text-ink-50">Modo local</div>
+                        <div className="text-[10px] text-ink-500 dark:text-ink-400">
+                          Todo se guarda en tu navegador. Configura Firebase (.env.local) para respaldo en la nube.
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/configuracion"
+                      onClick={() => setOpenUser(false)}
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-200 px-3 py-2 text-xs font-medium text-ink-700 hover:bg-ink-50 dark:border-ink-700 dark:text-ink-200 dark:hover:bg-ink-800"
+                    >
+                      Descargar respaldo JSON
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

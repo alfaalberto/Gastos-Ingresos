@@ -17,12 +17,30 @@ export function nowISO(): string {
   return new Date().toISOString();
 }
 
+// Formats a Date as YYYY-MM-DD using LOCAL time (never UTC).
+// Using toISOString() here would shift the day in negative UTC offsets (e.g. Mexico).
+export function toISODateLocal(d: Date): string {
+  const m = `${d.getMonth() + 1}`.padStart(2, "0");
+  const day = `${d.getDate()}`.padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
 export function todayISODate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return toISODateLocal(new Date());
+}
+
+// Parses "YYYY-MM-DD" as a LOCAL date. `new Date("YYYY-MM-DD")` parses as UTC
+// midnight, which renders as the previous day in UTC-negative timezones.
+export function parseLocalDate(value: string | Date): Date {
+  if (value instanceof Date) return value;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(value);
 }
 
 export function monthKey(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  if (typeof date === "string" && /^\d{4}-\d{2}/.test(date)) return date.slice(0, 7);
+  const d = typeof date === "string" ? parseLocalDate(date) : date;
   const m = `${d.getMonth() + 1}`.padStart(2, "0");
   return `${d.getFullYear()}-${m}`;
 }

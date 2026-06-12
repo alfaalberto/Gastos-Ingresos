@@ -1,5 +1,7 @@
 // Formatting utilities for currency, dates, numbers, and percentages.
 
+import { parseLocalDate } from "./utils";
+
 export function formatCurrency(
   amount: number,
   currency = "MXN",
@@ -49,7 +51,7 @@ const LONG_MONTHS_ES = [
 ];
 
 export function formatDate(date: string | Date, pattern = "dd/MM/yyyy"): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = parseLocalDate(date);
   if (isNaN(d.getTime())) return "";
   const dd = `${d.getDate()}`.padStart(2, "0");
   const mm = `${d.getMonth() + 1}`.padStart(2, "0");
@@ -61,13 +63,13 @@ export function formatDate(date: string | Date, pattern = "dd/MM/yyyy"): string 
 }
 
 export function formatDateLong(date: string | Date, locale = "es-MX"): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = parseLocalDate(date);
   if (isNaN(d.getTime())) return "";
   return `${d.getDate()} de ${LONG_MONTHS_ES[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
 export function shortMonth(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = parseLocalDate(date);
   if (isNaN(d.getTime())) return "";
   return SHORT_MONTHS_ES[d.getMonth()];
 }

@@ -1,17 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
+  BarChart3,
+  CalendarDays,
+  Info,
   ShieldCheck,
   Wallet,
+  X,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { KpiCard, Progress, Badge } from "@/components/ui/primitives";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
+import { HealthScore } from "@/components/dashboard/HealthScore";
 import { CashflowChart, CategoryDonut } from "@/components/dashboard/Charts";
 import { RecentMovements } from "@/components/dashboard/RecentMovements";
 import { Card, CardHeader, CardTitle, CardSubtitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Modal, ConfirmDialog } from "@/components/ui/Modal";
+import { TransactionForm } from "@/components/forms/TransactionForm";
 import { useFinanceStore } from "@/store/financeStore";
 import {
   compareMoM,
@@ -21,10 +30,15 @@ import {
 } from "@/lib/calculations";
 import { formatCurrency, maskAmount } from "@/lib/formatters";
 import { monthKey, todayISODate } from "@/lib/utils";
+import type { TransactionType } from "@/types/finance";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const state = useFinanceStore();
+  const dismissDemo = useFinanceStore((s) => s.dismissDemo);
+  const clearAll = useFinanceStore((s) => s.clearAll);
+  const [quickType, setQuickType] = useState<TransactionType | null>(null);
+  const [confirmFresh, setConfirmFresh] = useState(false);
   const mKey = monthKey(todayISODate());
   const summary = computeMonthlySummary(state.transactions, mKey);
   const cmp = compareMoM(state.transactions, mKey);
@@ -40,6 +54,32 @@ export default function DashboardPage() {
   return (
     <AppShell title="Dashboard" subtitle="Vista general de tu salud financiera">
       <div className="flex flex-col gap-5">
+        {/* Demo data banner */}
+        {state.isDemoData && (
+          <div className="flex flex-col gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-brand-800 dark:bg-brand-900/20">
+            <div className="flex items-start gap-2.5">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand-600 dark:text-brand-300" />
+              <div>
+                <div className="text-sm font-semibold text-brand-800 dark:text-brand-200">Estás viendo datos de demostración</div>
+                <div className="text-xs text-brand-700/80 dark:text-brand-300/80">
+                  Explora la app con ejemplos realistas, o empieza de cero con tus propias finanzas.
+                </div>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button size="sm" onClick={() => setConfirmFresh(true)}>Empezar de cero</Button>
+              <button
+                onClick={dismissDemo}
+                className="rounded-xl p-2 text-brand-600 hover:bg-brand-100 dark:text-brand-300 dark:hover:bg-brand-900/40"
+                aria-label="Seguir explorando con datos demo"
+                title="Seguir explorando"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* KPI cards */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <KpiCard
@@ -71,6 +111,25 @@ export default function DashboardPage() {
             accent="gold"
           />
         </div>
+
+        {/* Quick actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="danger" leftIcon={<ArrowDownRight className="h-4 w-4" />} onClick={() => setQuickType("expense")}>
+            Registrar gasto
+          </Button>
+          <Button size="sm" variant="success" leftIcon={<ArrowUpRight className="h-4 w-4" />} onClick={() => setQuickType("income")}>
+            Registrar ingreso
+          </Button>
+          <Link href="/reportes">
+            <Button size="sm" variant="outline" leftIcon={<BarChart3 className="h-4 w-4" />}>Reportes</Button>
+          </Link>
+          <Link href="/calendario">
+            <Button size="sm" variant="outline" leftIcon={<CalendarDays className="h-4 w-4" />}>Calendario</Button>
+          </Link>
+        </div>
+
+        {/* Financial Health Score */}
+        <HealthScore />
 
         {/* Charts + insights */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -138,6 +197,27 @@ export default function DashboardPage() {
           <RecentMovements limit={6} />
         </div>
       </div>
+
+      {/* Quick capture modal */}
+      <Modal
+        open={quickType !== null}
+        onClose={() => setQuickType(null)}
+        title={quickType === "income" ? "Registrar ingreso" : "Registrar gasto"}
+        description="Captura rápida — hasta un chicle cuenta."
+        size="lg"
+      >
+        {quickType && <TransactionForm defaultType={quickType} onClose={() => setQuickType(null)} />}
+      </Modal>
+
+      {/* Start fresh confirm */}
+      <ConfirmDialog
+        open={confirmFresh}
+        onClose={() => setConfirmFresh(false)}
+        onConfirm={clearAll}
+        title="¿Empezar de cero?"
+        description="Se eliminarán los datos de demostración (movimientos, cuentas, presupuestos, deudas y metas). Tus categorías y preferencias se conservan."
+        confirmText="Sí, empezar de cero"
+      />
     </AppShell>
   );
 }

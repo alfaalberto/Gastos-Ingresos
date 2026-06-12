@@ -13,9 +13,12 @@
 - **Reportes** visuales con comparativas, distribución por método de pago, histórico 12 meses y proyecciones.
 - **Calendario financiero** con heatmap de gastos y vista detallada por día.
 - **Configuración** completa: moneda, idioma, tema (claro/oscuro/sistema), modo privacidad, categorías, respaldo JSON, importación/exportación CSV.
-- **Datos persistentes** en `localStorage` mediante Zustand.
+- **Datos persistentes** en `localStorage` mediante Zustand + **sincronización opcional en la nube** (Firebase Auth + Firestore).
 - **Detección automática** de gastos hormiga, suscripciones, gastos inusuales y deuda alta.
-- **Mobile-first** con navegación inferior y diseño responsivo premium.
+- **Mobile-first**: barra inferior con botón central de captura rápida y hoja “Más” con todas las secciones.
+- **Navegación agrupada** en el escritorio: Día a día, Planificación, Patrimonio y Sistema — las 12 secciones accesibles.
+- **Modo demo claro**: banner de datos de demostración con botón “Empezar de cero”.
+- **Fechas correctas en cualquier zona horaria** (parseo local de fechas ISO, sin desfase de un día).
 
 ## 🛠 Stack técnico
 
@@ -83,11 +86,13 @@ src/
 - Cards con sombras suaves, bordes redondeados, animaciones sutiles.
 - Modo oscuro premium con contraste cuidado.
 
-## 🔐 Privacidad
+## 🔐 Privacidad y respaldos
 
 - Toda la información se guarda **localmente** en tu navegador.
 - Activa el **modo privacidad** desde la barra superior (icono de ojo) para ocultar montos.
 - Puedes descargar respaldos JSON desde Configuración.
+- **Nube opcional**: crea `.env.local` a partir de `.env.local.example` con tus credenciales de Firebase e inicia sesión desde el menú de usuario (icono de persona en la barra superior) para sincronizar entre dispositivos.
+- **Respaldo del código a GitHub**: ejecuta `backup.bat` (Windows) para hacer commit y push automáticos a `origin/main`. Cada push a `main` además despliega a Firebase Hosting vía GitHub Actions.
 
 ## 📜 Licencia
 

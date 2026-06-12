@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardSubtitle } from "@/components/ui/Card"
 import { Badge, Empty } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency, formatDate, formatDateLong, maskAmount, monthYearLabel } from "@/lib/formatters";
-import { monthKey } from "@/lib/utils";
+import { monthKey, toISODateLocal, todayISODate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
@@ -110,9 +110,9 @@ export default function CalendarioPage() {
           </div>
           <div className="grid grid-cols-7 gap-1">
             {grid.map((d) => {
-              const iso = d.toISOString().slice(0, 10);
+              const iso = toISODateLocal(d);
               const otherMonth = d.getMonth() !== month;
-              const isToday = iso === new Date().toISOString().slice(0, 10);
+              const isToday = iso === todayISODate();
               const data = txByDate[iso];
               const dueDebts = debtByDate[iso] || [];
               const intensity = maxSpend > 0 ? Math.min(1, (data?.expense || 0) / maxSpend) : 0;

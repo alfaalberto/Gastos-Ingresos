@@ -3,6 +3,7 @@
 import type { Debt, FinanceState, Goal, Transaction } from "@/types/finance";
 import {
   compareMoM,
+  computeAccountBalance,
   computeBudgetStatus,
   computeDebtSummary,
   computeGoalSummaries,
@@ -12,7 +13,7 @@ import {
   recurringSubscriptions,
   topCategories,
 } from "./calculations";
-import { clamp, monthKey, pct, safeDiv, todayISODate } from "./utils";
+import { clamp, monthKey, parseLocalDate, pct, safeDiv, todayISODate } from "./utils";
 import { formatCurrency, formatPercent } from "./formatters";
 
 export interface Insight {
@@ -81,7 +82,7 @@ export function computeHealthScore(state: FinanceState, mKey = monthKey(todayISO
   // 5) Emergency fund: liquid balance >= N months expenses (weight 10)
   const liquid = state.accounts
     .filter((a) => a.isActive && ["cash", "bank", "debit", "wallet"].includes(a.type))
-    .reduce((acc, a) => acc + a.initialBalance, 0);
+    .reduce((acc, a) => acc + computeAccountBalance(a.id, state.transactions, state.accounts), 0);
   const monthsCovered = safeDiv(liquid, Math.max(1, summary.expenses));
   const targetMonths = state.settings.emergencyFundMonths || 3;
   const emergencyFundScore = clamp((monthsCovered / targetMonths) * 10, 0, 10);
@@ -307,7 +308,7 @@ export function buildAlerts(state: FinanceState, mKey = monthKey(todayISODate())
   // Debt due dates
   for (const d of state.debts) {
     if (d.status === "paid") continue;
-    const due = new Date(d.dueDate);
+    const due = parseLocalDate(d.dueDate);
     const diff = (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
     if (diff < 0) {
       alerts.push({
